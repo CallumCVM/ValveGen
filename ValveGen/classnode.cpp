@@ -67,8 +67,6 @@ namespace valvegen
 				if (e->dtype_ == ARRAY)
 				{
 					e->array_stride_ = stride;
-
-					//e->array_size_++;
 				}
 				return e;
 			}

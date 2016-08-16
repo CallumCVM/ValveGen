@@ -109,22 +109,12 @@ namespace valvegen
 
 		if (head->m_pProps != nullptr)
 		{
-			if (current_node->GetBaseName() == "CAttributeContainer")
-			{
-				bool a = false;
-			}
-
 			for (auto i = 0; i < head->m_nProps; ++i)
 			{
 				auto prop = &head->m_pProps[i];
 
 				if (prop == nullptr)
 					continue;
-
-				if (!strcmp(prop->m_pVarName,"m_AttributeManager"))
-				{
-					bool a = false;
-				}
 
 				AddElement(prop, current_node);
 			}
@@ -143,11 +133,6 @@ namespace valvegen
 
 		for(auto& n : nodes_)
 		{
-			if (n->GetBaseName() == "CAttributeContainer")
-			{
-				bool a = false;
-			}
-
 			std::string output_file = n->GetBaseName() + ".h";
 
 			std::ofstream of("D:\\ValveGen\\" + output_file, std::ios::out);
@@ -170,9 +155,6 @@ namespace valvegen
 			of << "\tclass " << n->GetBaseName();
 
 			DWORD inherited_size = 0;
-
-			/* Get the parents in order */
-			
 
 			if (n->HasInheritence())
 			{
