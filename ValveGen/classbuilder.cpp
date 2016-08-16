@@ -39,12 +39,10 @@ namespace valvegen
 		for (auto& n : nodes_)
 		{
 			if (n->GetBaseName() == fixed_name)
-			{
-				
+			{				
 				if (parent)
 					parent->SetParent(n);
 
-				//return nullptr;
 				return n;
 			}
 		}
