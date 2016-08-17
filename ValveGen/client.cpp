@@ -114,8 +114,22 @@ namespace valvegen
 
 	ClientClass* Client::GetAllClasses()
 	{
+		int index = -1;
+
+		for (int i = 0; i < 16; i++)
+		{
+			auto pdwClient = *(PDWORD_PTR*)class_ptr_;
+			std::uint8_t* function = (std::uint8_t*)pdwClient[i];
+
+			if (function[0] == 0xA1 && function[5] == 0xC3)
+			{
+				index = i;
+				break;
+			}
+		}
+
 		typedef ClientClass* (__thiscall *tGetAllClasses)(void*);
-		tGetAllClasses pGetAllClasses = getvfunc<tGetAllClasses>(class_ptr_,8);
+		tGetAllClasses pGetAllClasses = getvfunc<tGetAllClasses>(class_ptr_, index);
 
 		if (!pGetAllClasses)
 			return nullptr;
