@@ -81,17 +81,45 @@ namespace valvegen
 		int				m_ClassID;
 	};
 
+	/// <summary>
+	/// Class Client.
+	/// </summary>
+	/// <seealso cref="Singleton{Client}" />
 	class Client : public Singleton<Client>
 	{
-	public:
+		friend class Singleton<Client>;
+	private:
+		/// <summary>
+		/// Prevents a default instance of the <see cref="Client"/> class from being created.
+		/// </summary>
 		Client();
 
+	public:
+		/// <summary>
+		/// Waits for client to become ready.
+		/// </summary>
 		void WaitForClientToBecomeReady();
+
+		/// <summary>
+		/// Initializes the client interface.
+		/// </summary>
+		/// <returns>bool.</returns>
 		bool InitClientInterface();
+
+		/// <summary>
+		/// Gets all classes.
+		/// </summary>
+		/// <returns>valvegen.ClientClass *.</returns>
 		ClientClass* GetAllClasses();
 
 	private:
+		/// <summary>
+		/// The client_dll_handle_
+		/// </summary>
 		HMODULE client_dll_handle_;
+		/// <summary>
+		/// The class_ptr_
+		/// </summary>
 		LPVOID class_ptr_;
 	};
 }
