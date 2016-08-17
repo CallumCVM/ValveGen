@@ -22,6 +22,8 @@ namespace valvegen
 				e = NULL;
 			}
 		}
+
+		data_elements_.clear();
 	}
 
 	void ClassNode::SetClassName(std::string name)

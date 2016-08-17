@@ -18,9 +18,11 @@ namespace valvegen
 				n = NULL;
 			}
 		}
+
+		nodes_.clear();
 	}
 
-	bool ClassBuilder::CreateClasses()
+	bool ClassBuilder::CreateClasses(HINSTANCE module_instance)
 	{
 		auto class_head = Client::Instance()->GetAllClasses();
 
@@ -32,7 +34,7 @@ namespace valvegen
 			CreateNodes(class_head->m_pRecvTable, nullptr);
 		}
 
-		CreateSDK();
+		CreateSDK(module_instance);
 
 		return true;
 	}
@@ -130,21 +132,43 @@ namespace valvegen
 		}
 	}
 
-	void ClassBuilder::CreateSDK()
+	void ClassBuilder::CreateSDK(HINSTANCE module_instance)
 	{
 		if (nodes_.size() == 0)
 			return;
 
 		/* Create SDK directory */
+		char module_path[MAX_PATH];
+		if (!GetModuleFileName(reinterpret_cast<HMODULE>(module_instance), module_path, sizeof(module_path)))
+			return;
+
+		std::string sdk_path = module_path;
+		size_t pos = sdk_path.find_last_of('\\');
+		if (pos != std::string::npos)
+		{
+			sdk_path = sdk_path.substr(0, pos + 1);
+		}
+
+		sdk_path.append("ValveGen\\");
+
+		if (GetFileAttributes(sdk_path.c_str()) == INVALID_FILE_ATTRIBUTES)
+		{
+			CreateDirectory(sdk_path.c_str(), nullptr);
+		}
 
 		for(auto& n : nodes_)
 		{
 			std::string output_file = n->GetBaseName() + ".h";
 
-			std::ofstream of("D:\\ValveGen\\" + output_file, std::ios::out);
+			std::ofstream of(sdk_path + output_file, std::ios::out);
 
 			if (!of.is_open())
 				continue;
+
+			if (n->GetBaseName() == "CBaseEntity")
+			{
+				bool a = false;
+			}
 
 			n->OuputHeader(of);
 

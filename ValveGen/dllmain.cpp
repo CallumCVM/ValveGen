@@ -4,7 +4,7 @@
 #include "client.h"
 #include "classbuilder.h"
 
-DWORD WINAPI Begin(LPVOID)
+DWORD WINAPI Begin(LPVOID param)
 {
 	valvegen::Client* client = valvegen::Client::Instance();
 
@@ -13,7 +13,9 @@ DWORD WINAPI Begin(LPVOID)
 	if (!client->InitClientInterface())
 		return EXIT_FAILURE;
 
-	valvegen::ClassBuilder::Instance()->CreateClasses();
+	HINSTANCE module_instance = param ? reinterpret_cast<HINSTANCE>(param) : nullptr;
+
+	valvegen::ClassBuilder::Instance()->CreateClasses(module_instance);
 
 	return EXIT_SUCCESS;
 }
@@ -26,7 +28,7 @@ BOOL WINAPI DllMain(
 {
 	if (fdwReason == DLL_PROCESS_ATTACH)
 	{
-		CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)&Begin, nullptr, 0, nullptr);
+		CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)&Begin, hinstDLL, 0, nullptr);
 	}
 	else if (fdwReason == DLL_PROCESS_DETACH)
 	{

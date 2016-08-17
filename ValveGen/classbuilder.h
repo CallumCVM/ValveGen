@@ -34,7 +34,7 @@ namespace valvegen
 		/// Creates the classes by iterating a list of ClientClass returned from the game egine.
 		/// </summary>
 		/// <returns>bool.</returns>
-		bool CreateClasses();
+		bool CreateClasses(HINSTANCE module_instance);
 
 		/// <summary>
 		/// Creates the nodes recursively
@@ -61,7 +61,7 @@ namespace valvegen
 		/// <summary>
 		/// Compiles all the class nodes into an SDK on disk.
 		/// </summary>
-		void CreateSDK();
+		void CreateSDK(HINSTANCE module_instance);
 
 		/// <summary>
 		/// Adds a data element to a class node
