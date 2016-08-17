@@ -28,5 +28,9 @@ BOOL WINAPI DllMain(
 	{
 		CreateThread(nullptr, 0, (LPTHREAD_START_ROUTINE)&Begin, nullptr, 0, nullptr);
 	}
+	else if (fdwReason == DLL_PROCESS_DETACH)
+	{
+		valvegen::ClassBuilder::Instance()->Cleanup();
+	}
 	return TRUE;
 }

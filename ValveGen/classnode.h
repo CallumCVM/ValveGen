@@ -93,6 +93,8 @@ namespace valvegen
 	public:
 		ClassNode();
 
+		void Cleanup();
+
 		void SetParent(ClassNode* parent);
 
 		void SetClassName(std::string name);
@@ -125,15 +127,11 @@ namespace valvegen
 
 		void ShuffleParents();
 
-		void CreateInlineDeclaration(DataElement* element);
-
 	private:
 		std::vector<ClassNode*> parents_;
 
 		std::string class_name_;
 
 		std::vector<DataElement*> data_elements_;
-
-		std::vector<DataElement*> inline_declarations_;
 	};
 }

@@ -50,6 +50,18 @@ namespace valvegen
 	ClassNode::ClassNode()
 	{}
 
+	void ClassNode::Cleanup()
+	{
+		for (auto& e : data_elements_)
+		{
+			if (e)
+			{
+				delete e;
+				e = NULL;
+			}
+		}
+	}
+
 	void ClassNode::SetClassName(std::string name)
 	{
 		if (name.find("DT_") == 0)
@@ -116,11 +128,6 @@ namespace valvegen
 		data_elements_.push_back(element);
 
 		return element;
-	}
-
-	void ClassNode::CreateInlineDeclaration(DataElement* element)
-	{
-		inline_declarations_.push_back(element);
 	}
 
 	std::string ClassNode::GetBaseName()

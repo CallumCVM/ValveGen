@@ -7,6 +7,19 @@ namespace valvegen
 	ClassBuilder::ClassBuilder()
 	{}
 
+	void ClassBuilder::Cleanup()
+	{
+		for (auto& n : nodes_)
+		{
+			if (n)
+			{
+				n->Cleanup();
+				delete n;
+				n = NULL;
+			}
+		}
+	}
+
 	bool ClassBuilder::CreateClasses()
 	{
 		auto class_head = Client::Instance()->GetAllClasses();

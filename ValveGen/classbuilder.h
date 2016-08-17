@@ -14,6 +14,7 @@ namespace valvegen
 	public:
 		ClassBuilder();
 
+		void Cleanup();
 		bool CreateClasses();
 		void CreateNodes(RecvTable* head, ClassNode* parent = nullptr);
 		ClassNode* CreateNode(RecvTable* instance, ClassNode* parent = nullptr);
