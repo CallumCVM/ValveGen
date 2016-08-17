@@ -11,9 +11,12 @@ namespace valvegen
 {
 	class ClassBuilder : public Singleton<ClassBuilder>
 	{
-	public:
+		friend class Singleton<ClassBuilder>;
+
+	private:
 		ClassBuilder();
 
+	public:
 		void Cleanup();
 		bool CreateClasses();
 		void CreateNodes(RecvTable* head, ClassNode* parent = nullptr);
