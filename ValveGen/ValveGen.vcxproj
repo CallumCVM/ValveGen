@@ -116,6 +116,7 @@
     <ClInclude Include="classbuilder.h" />
     <ClInclude Include="classnode.h" />
     <ClInclude Include="client.h" />
+    <ClInclude Include="dataelement.h" />
     <ClInclude Include="required.h" />
     <ClInclude Include="singleton.h" />
   </ItemGroup>
@@ -123,6 +124,7 @@
     <ClCompile Include="classbuilder.cpp" />
     <ClCompile Include="classnode.cpp" />
     <ClCompile Include="client.cpp" />
+    <ClCompile Include="dataelement.cpp" />
     <ClCompile Include="dllmain.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

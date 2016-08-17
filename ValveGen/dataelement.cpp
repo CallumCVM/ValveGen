@@ -1,6 +1,7 @@
 
 
 #include "dataelement.h"
+#include "classbuilder.h"
 
 namespace valvegen
 {
@@ -58,5 +59,45 @@ namespace valvegen
 		default:
 			return "";
 		}
+	}
+
+	int DataElement::GetElementSize()
+	{
+		DWORD size = 0;
+
+		switch (dtype_)
+		{
+		case INT:
+		case FLOAT:
+			size += sizeof(int);
+			break;
+
+		case STRING:
+			size += sizeof(PCHAR);
+			break;
+
+		case VECTOR:
+			size += sizeof(float) * 3;
+			break;
+
+		case VECTORXY:
+			size += sizeof(float) * 2;
+			break;
+
+		case ARRAY:
+			size += (array_size_ + 1) * array_stride_;
+			break;
+
+		case CLASS:
+		{
+			ClassNode* class_descriptor = valvegen::ClassBuilder::Instance()->FindNode(instance_name_);
+
+			if (class_descriptor)
+				size += class_descriptor->GetClassSize();
+			break;
+		}
+		}
+
+		return size;
 	}
 }

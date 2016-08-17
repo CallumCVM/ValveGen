@@ -44,11 +44,6 @@ namespace valvegen
 		if (fixed_name.find("DT_") == 0)
 			fixed_name.replace(fixed_name.begin(), fixed_name.begin() + 3, "C");
 
-		if (fixed_name == "CLocalActiveWeaponData")
-		{
-			bool a = false;
-		}
-
 		for (auto& n : nodes_)
 		{
 			if (n->GetBaseName() == fixed_name)
@@ -67,7 +62,7 @@ namespace valvegen
 
 	void ClassBuilder::AddElement(RecvProp* prop, ClassNode* current_node)
 	{
-		if (prop->m_RecvType == ClassNode::CLASS)
+		if (prop->m_RecvType == CLASS)
 		{
 			if (!strcmp(prop->m_pVarName, "baseclass"))
 				CreateNodes(prop->m_pDataTable, current_node);
@@ -77,13 +72,13 @@ namespace valvegen
 				{
 					DWORD last_array_offset = 0;
 					int num_array_elements = 0;
-					ClassNode::DataElement* array_member = nullptr;
+					DataElement* array_member = nullptr;
 
 					for (auto i = 0; i < prop->m_pDataTable->m_nProps; ++i)
 					{
 						DWORD stride = prop->m_pDataTable->m_pProps[i].m_Offset - last_array_offset;
 
-						array_member = current_node->CreateDataElement(prop->m_Offset, prop->m_pVarName, ClassNode::DATA_TYPE::ARRAY, stride);
+						array_member = current_node->CreateDataElement(prop->m_Offset, prop->m_pVarName, DATA_TYPE::ARRAY, stride);
 
 						last_array_offset = prop->m_pDataTable->m_pProps[i].m_Offset;
 
@@ -96,7 +91,7 @@ namespace valvegen
 				{
 					CreateNodes(prop->m_pDataTable);
 
-					current_node->CreateDataElementClassInstance(prop->m_Offset, prop->m_pDataTable->m_pNetTableName, prop->m_pVarName, static_cast<ClassNode::DATA_TYPE>(prop->m_RecvType));
+					current_node->CreateDataElementClassInstance(prop->m_Offset, prop->m_pDataTable->m_pNetTableName, prop->m_pVarName, static_cast<DATA_TYPE>(prop->m_RecvType));
 				}
 
 			}
@@ -104,7 +99,7 @@ namespace valvegen
 		else
 		{
 			/* Create a new variable */
-			current_node->CreateDataElement(prop->m_Offset, prop->m_pVarName, static_cast<ClassNode::DATA_TYPE>(prop->m_RecvType));
+			current_node->CreateDataElement(prop->m_Offset, prop->m_pVarName, static_cast<DATA_TYPE>(prop->m_RecvType));
 		}
 	}
 

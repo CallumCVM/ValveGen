@@ -7,45 +7,7 @@
 /// </summary>
 namespace valvegen
 {
-	int ClassNode::DataElement::GetElementSize()
-	{
-		DWORD size = 0;
-
-		switch (dtype_)
-		{
-		case INT:
-		case FLOAT:
-			size += sizeof(int);
-			break;
-
-		case STRING:
-			size += sizeof(PCHAR);
-			break;
-
-		case VECTOR:
-			size += sizeof(float) * 3;
-			break;
-
-		case VECTORXY:
-			size += sizeof(float) * 2;
-			break;
-
-		case ARRAY:
-			size += (array_size_+1) * array_stride_;
-			break;
-
-		case CLASS:
-		{
-			ClassNode* class_descriptor = valvegen::ClassBuilder::Instance()->FindNode(instance_name_);
-
-			if (class_descriptor)
-				size += class_descriptor->GetClassSize();
-			break;
-		}
-		}
-
-		return size;
-	}
+	
 
 	ClassNode::ClassNode()
 	{}
@@ -70,7 +32,7 @@ namespace valvegen
 		class_name_ = name;
 	}
 
-	ClassNode::DataElement* ClassNode::CreateDataElement(DWORD offset, std::string name, DATA_TYPE dtype, DWORD stride /*= 0*/)
+	DataElement* ClassNode::CreateDataElement(DWORD offset, std::string name, DATA_TYPE dtype, DWORD stride /*= 0*/)
 	{
 		for (auto& e : data_elements_)
 		{
@@ -98,7 +60,7 @@ namespace valvegen
 		return element;
 	}
 
-	ClassNode::DataElement* ClassNode::CreateDataElementClassInstance(DWORD offset, std::string name, std::string varname, DATA_TYPE dtype)
+	DataElement* ClassNode::CreateDataElementClassInstance(DWORD offset, std::string name, std::string varname, DATA_TYPE dtype)
 	{
 		if (name.find("DT_") == 0)
 			name.replace(name.begin(), name.begin() + 3, "C");
@@ -207,7 +169,7 @@ namespace valvegen
 		return parents_.at(index);
 	}
 
-	std::vector<ClassNode::DataElement*>& ClassNode::GetDataElements()
+	std::vector<DataElement*>& ClassNode::GetDataElements()
 	{
 		return data_elements_;
 	}

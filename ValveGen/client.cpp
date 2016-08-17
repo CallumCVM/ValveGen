@@ -18,9 +18,12 @@ namespace valvegen
 		return reinterpret_cast<Fn>(getvtable(inst, offset)[index]);
 	}
 
+
 	Client::Client() :
 		client_dll_handle_(nullptr)
 	{}
+
+
 
 	void Client::WaitForClientToBecomeReady()
 	{
@@ -33,6 +36,8 @@ namespace valvegen
 
 		client_dll_handle_ = client_dll;
 	}
+
+
 
 	bool Client::InitClientInterface()
 	{
@@ -104,6 +109,8 @@ namespace valvegen
 
 		return true;
 	}
+
+
 
 	ClientClass* Client::GetAllClasses()
 	{

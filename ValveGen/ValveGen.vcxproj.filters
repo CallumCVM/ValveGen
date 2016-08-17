@@ -30,6 +30,9 @@
     <ClInclude Include="classbuilder.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="dataelement.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -42,6 +45,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="classnode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dataelement.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
