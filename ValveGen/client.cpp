@@ -127,6 +127,9 @@ namespace valvegen
 				break;
 			}
 		}
+		
+		if(index == -1)
+			return nullptr;
 
 		typedef ClientClass* (__thiscall *tGetAllClasses)(void*);
 		tGetAllClasses pGetAllClasses = getvfunc<tGetAllClasses>(class_ptr_, index);
