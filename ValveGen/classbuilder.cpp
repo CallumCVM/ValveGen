@@ -4,249 +4,319 @@
 
 namespace valvegen
 {
-	ClassBuilder::ClassBuilder()
-	{}
+    ClassBuilder::ClassBuilder()
+    {}
 
-	void ClassBuilder::Cleanup()
-	{
-		for (auto& n : nodes_)
-		{
-			if (n)
-			{
-				n->Cleanup();
-				delete n;
-				n = NULL;
-			}
-		}
+    void ClassBuilder::Cleanup()
+    {
+        for ( auto& n : nodes_ )
+        {
+            if ( n )
+            {
+                n->Cleanup();
+                delete n;
+                n = NULL;
+            }
+        }
 
-		nodes_.clear();
-	}
+        nodes_.clear();
+    }
 
-	bool ClassBuilder::CreateClasses(HINSTANCE module_instance)
-	{
-		auto class_head = Client::Instance()->GetAllClasses();
+    bool ClassBuilder::CreateClasses( HINSTANCE module_instance )
+    {
+        auto class_head = Client::Instance()->GetAllClasses();
 
-		if (class_head == nullptr)
-			return false;
+        if ( class_head == nullptr )
+            return false;
 
-		for (; class_head != nullptr; class_head = class_head->m_pNext)
-		{
-			CreateNodes(class_head->m_pRecvTable, nullptr);
-		}
+        for ( ; class_head != nullptr; class_head = class_head->m_pNext )
+        {
+            CreateNodes( class_head->m_pRecvTable , nullptr );
+        }
 
-		CreateSDK(module_instance);
+        CreateSDK( module_instance );
 
-		return true;
-	}
+        return true;
+    }
 
-	ClassNode* ClassBuilder::CreateNode(RecvTable* instance, ClassNode* parent /*= nullptr*/)
-	{
-		std::string fixed_name = instance->m_pNetTableName;
+    ClassNode* ClassBuilder::CreateNode( RecvTable* instance , ClassNode* parent /*= nullptr*/ )
+    {
+        std::string fixed_name = instance->m_pNetTableName;
 
-		if (fixed_name.find("DT_") == 0)
-			fixed_name.replace(fixed_name.begin(), fixed_name.begin() + 3, "C");
+        if ( fixed_name.find( "DT_" ) == 0 )
+            fixed_name.replace( fixed_name.begin() , fixed_name.begin() + 3 , "C" );
 
-		for (auto& n : nodes_)
-		{
-			if (n->GetBaseName() == fixed_name)
-			{				
-				if (parent)
-					parent->SetParent(n);
+        for ( auto& n : nodes_ )
+        {
+            if ( n->GetBaseName() == fixed_name )
+            {
+                if ( parent )
+                    parent->SetParent( n );
 
-				return n;
-			}
-		}
-		auto node = new ClassNode();
-		nodes_.push_back(node);		
+                return n;
+            }
+        }
+        auto node = new ClassNode();
+        nodes_.push_back( node );
 
-		return node;
-	}
+        return node;
+    }
 
-	void ClassBuilder::AddElement(RecvProp* prop, ClassNode* current_node)
-	{
-		if (prop->m_RecvType == CLASS)
-		{
-			if (!strcmp(prop->m_pVarName, "baseclass"))
-				CreateNodes(prop->m_pDataTable, current_node);
-			else
-			{
-				if (prop->m_pDataTable->m_pProps->m_pVarName[0] == '0')
-				{
-					DWORD last_array_offset = 0;
-					int num_array_elements = 0;
-					DataElement* array_member = nullptr;
+    void ClassBuilder::AddElement( RecvProp* prop , ClassNode* current_node )
+    {
+        std::string sName = prop->m_pVarName;
 
-					for (auto i = 0; i < prop->m_pDataTable->m_nProps; ++i)
-					{
-						DWORD stride = prop->m_pDataTable->m_pProps[i].m_Offset - last_array_offset;
+        // Now let's make the c++ compiler able to read the networked variables, if you don't want to end up with big errors when you compile...
+        int iPos;
 
-						array_member = current_node->CreateDataElement(prop->m_Offset, prop->m_pVarName, DATA_TYPE::ARRAY, stride);
+        // Replace [ by _.
+        while ( true )
+        {
+            iPos = sName.find( TEXT( "[" ) );
 
-						last_array_offset = prop->m_pDataTable->m_pProps[i].m_Offset;
+            if ( iPos != std::string::npos )
+            {
+                sName[ iPos ] = TEXT( '_' );
+            }
+            else
+            {
+                break;
+            }
+        }
 
-						num_array_elements++;
-					}
+        // delete ] from networked variables
+        while ( true )
+        {
+            iPos = sName.find( TEXT( "]" ) );
 
-					array_member->array_size_ = num_array_elements - 1;
-				}
-				else
-				{
-					CreateNodes(prop->m_pDataTable);
+            if ( iPos != std::string::npos )
+            {
+                sName.erase( iPos );
+            }
+            else
+            {
+                break;
+            }
+        }
 
-					current_node->CreateDataElementClassInstance(prop->m_Offset, prop->m_pDataTable->m_pNetTableName, prop->m_pVarName, static_cast<DATA_TYPE>(prop->m_RecvType));
-				}
+        // delete . from networked variables.
+        while ( true )
+        {
+            iPos = sName.find( TEXT( "." ) );
 
-			}
-		}
-		else
-		{
-			/* Create a new variable */
-			current_node->CreateDataElement(prop->m_Offset, prop->m_pVarName, static_cast<DATA_TYPE>(prop->m_RecvType));
-		}
-	}
+            if ( iPos != std::string::npos )
+            {
+                sName[ iPos ] = TEXT( '_' );
+            }
+            else
+            {
+                break;
+            }
+        }
 
-	void ClassBuilder::CreateNodes(RecvTable* head, ClassNode* parent /*= nullptr*/)
-	{
-		ClassNode* current_node = CreateNode(head, parent);
+        // delete " from networked variables.
+        while ( true )
+        {
+            iPos = sName.find( TEXT( "\"" ) );
 
-		// it has already been created so ignore it
-		if (!current_node)
-			return;
+            if ( iPos != std::string::npos )
+            {
+                sName[ iPos ] = TEXT( '_' );
+            }
+            else
+            {
+                break;
+            }
+        }
 
-		current_node->SetClassName(head->m_pNetTableName);
+        if ( prop->m_RecvType == CLASS )
+        {
+            if ( !strcmp( prop->m_pVarName , "baseclass" ) )
+                CreateNodes( prop->m_pDataTable , current_node );
+            else
+            {
+                if ( prop->m_pDataTable->m_pProps->m_pVarName[ 0 ] == '0' )
+                {
+                    DWORD last_array_offset = 0;
+                    int num_array_elements = 0;
+                    DataElement* array_member = nullptr;
 
-		if (head->m_pProps != nullptr)
-		{
-			for (auto i = 0; i < head->m_nProps; ++i)
-			{
-				auto prop = &head->m_pProps[i];
+                    for ( auto i = 0; i < prop->m_pDataTable->m_nProps; ++i )
+                    {
+                        DWORD stride = prop->m_pDataTable->m_pProps[ i ].m_Offset - last_array_offset;
 
-				if (prop == nullptr)
-					continue;
+                        array_member = current_node->CreateDataElement( prop->m_Offset , sName.c_str() , DATA_TYPE::ARRAY , stride );
 
-				AddElement(prop, current_node);
-			}
+                        last_array_offset = prop->m_pDataTable->m_pProps[ i ].m_Offset;
 
-			/* Shuffle the members so that they are in offset order */
-			current_node->ShuffleMembers();
-		}
-	}
+                        num_array_elements++;
+                    }
 
-	void ClassBuilder::CreateSDK(HINSTANCE module_instance)
-	{
-		if (nodes_.size() == 0)
-			return;
+                    array_member->array_size_ = num_array_elements - 1;
+                }
+                else
+                {
+                    CreateNodes( prop->m_pDataTable );
 
-		/* Create SDK directory */
-		char module_path[MAX_PATH];
-		if (!GetModuleFileName(reinterpret_cast<HMODULE>(module_instance), module_path, sizeof(module_path)))
-			return;
+                    current_node->CreateDataElementClassInstance( prop->m_Offset , prop->m_pDataTable->m_pNetTableName , sName.c_str() , static_cast< DATA_TYPE >( prop->m_RecvType ) );
+                }
 
-		std::string sdk_path = module_path;
-		size_t pos = sdk_path.find_last_of('\\');
-		if (pos != std::string::npos)
-		{
-			sdk_path = sdk_path.substr(0, pos + 1);
-		}
+            }
+        }
+        else
+        {
+            /* Create a new variable */
+            current_node->CreateDataElement( prop->m_Offset , sName.c_str() , static_cast< DATA_TYPE >( prop->m_RecvType ) );
+        }
+    }
 
-		sdk_path.append("ValveGen\\");
+    void ClassBuilder::CreateNodes( RecvTable* head , ClassNode* parent /*= nullptr*/ )
+    {
+        ClassNode* current_node = CreateNode( head , parent );
 
-		if (GetFileAttributes(sdk_path.c_str()) == INVALID_FILE_ATTRIBUTES)
-		{
-			CreateDirectory(sdk_path.c_str(), nullptr);
-		}
+        // it has already been created so ignore it
+        if ( !current_node )
+            return;
 
-		for(auto& n : nodes_)
-		{
-			std::string output_file = n->GetBaseName() + ".h";
+        current_node->SetClassName( head->m_pNetTableName );
 
-			std::ofstream of(sdk_path + output_file, std::ios::out);
+        if ( head->m_pProps != nullptr )
+        {
+            for ( auto i = 0; i < head->m_nProps; ++i )
+            {
+                auto prop = &head->m_pProps[ i ];
 
-			if (!of.is_open())
-				continue;
+                if ( prop == nullptr )
+                    continue;
 
-			if (n->GetBaseName() == "CBaseEntity")
-			{
-				bool a = false;
-			}
+                AddElement( prop , current_node );
+            }
 
-			n->OuputHeader(of);
+            /* Shuffle the members so that they are in offset order */
+            current_node->ShuffleMembers();
+        }
+    }
 
-			n->ShuffleParents();
+    void ClassBuilder::CreateSDK( HINSTANCE module_instance )
+    {
+        if ( nodes_.size() == 0 )
+            return;
 
-			n->ResolveIncludes(of);
+        /* Create SDK directory */
+        char module_path[ MAX_PATH ];
+        if ( !GetModuleFileName( reinterpret_cast< HMODULE >( module_instance ) , module_path , sizeof( module_path ) ) )
+            return;
 
-			/* namespace */
-			of << "namespace valvegen" << std::endl << "{" << std::endl;
+        std::string sdk_path = module_path;
+        size_t pos = sdk_path.find_last_of( '\\' );
+        if ( pos != std::string::npos )
+        {
+            sdk_path = sdk_path.substr( 0 , pos + 1 );
+        }
 
-			of << "#pragma pack(push,1)" << std::endl;
+        sdk_path.append( "ValveGen\\" );
 
-			/* classname */
-			of << "\tclass " << n->GetBaseName();
+        if ( GetFileAttributes( sdk_path.c_str() ) == INVALID_FILE_ATTRIBUTES )
+        {
+            CreateDirectory( sdk_path.c_str() , nullptr );
+        }
 
-			DWORD inherited_size = 0;
+        for ( auto& n : nodes_ )
+        {
+            std::string output_file = n->GetBaseName() + ".h";
 
-			if (n->HasInheritence())
-			{
-				of << " : " << std::endl;				
+            std::ofstream of( sdk_path + output_file , std::ios::out );
 
-				UINT number_of_parents = n->GetNumParents();
-				for (UINT i = 0; i < number_of_parents; ++i)
-				{
-					if(number_of_parents > 1 && i < number_of_parents-1)
-						of << "\t\t public " << n->GetInheritedClassName(i) << ", // 0x" << std::hex << n->GetInheritedClassSize(i) << std::endl;
-					else
-						of << "\t\t public " << n->GetInheritedClassName(i) << " // 0x" << std::hex << n->GetInheritedClassSize(i) << std::endl;
+            if ( !of.is_open() )
+                continue;
 
-					/* make note of the inherited size so we can pad to it */
-					if(i == number_of_parents-1)
-						inherited_size = n->GetInheritedClassSize(i);
-				}
-			}
-			else
-			{
-				of << std::endl;
-			}
+            n->OuputHeader( of );
 
-			of << "\t{" << std::endl << "\tpublic:" << std::endl;
+            n->ShuffleParents();
 
-			DWORD last_offset = inherited_size;
+            n->ResolveIncludes( of );
 
-			for (unsigned int i = 0; i < n->GetDataElements().size(); ++i)
-			{
-				auto e = n->GetDataElements().at(i);
+            of << "#pragma pack(push,1)" << std::endl;
 
-				/* check for padding */
-				if (e->offset_ > last_offset)
-				{
-					DWORD padding = e->offset_ - last_offset;
+            /* classname */
+            of << "\tclass " << n->GetBaseName();
 
-					of << "\t\tunsigned char _0x" << std::hex << last_offset << "[0x" << std::hex << padding << "];" << std::endl;
-				}
+            DWORD inherited_size = 0;
 
-				of << "\t\t" << e->GetTypeName() << "\t" << e->name_ << e->GetArrayTerminator() << "; // 0x" << std::hex << e->offset_ << std::endl;
+            if ( n->HasInheritence() )
+            {
+                of << " : " << std::endl;
 
-				last_offset = e->offset_ + e->GetElementSize();
-			}
+                UINT number_of_parents = n->GetNumParents();
+                for ( UINT i = 0; i < number_of_parents; ++i )
+                {
+                    if ( number_of_parents > 1 && i < number_of_parents - 1 )
+                        of << "\t\t public " << n->GetInheritedClassName( i ) << ", // 0x" << std::hex << n->GetInheritedClassSize( i ) << std::endl;
+                    else
+                        of << "\t\t public " << n->GetInheritedClassName( i ) << " // 0x" << std::hex << n->GetInheritedClassSize( i ) << std::endl;
 
-			of << "\t};" << std::endl;
+                    /* make note of the inherited size so we can pad to it */
+                    if ( i == number_of_parents - 1 )
+                        inherited_size = n->GetInheritedClassSize( i );
+                }
+            }
+            else
+            {
+                of << std::endl;
+            }
 
-			of << "#pragma pack(pop)" << std::endl;
+            of << "\t{" << std::endl << "\tpublic:" << std::endl;
 
-			of << "}";
+            DWORD last_offset = inherited_size;
 
-			of.close();
-		}
+            for ( unsigned int i = 0; i < n->GetDataElements().size(); ++i )
+            {
+                auto e = n->GetDataElements().at( i );
 
-	}
+                /* check for padding */
+                if ( e->offset_ > last_offset )
+                {
+                    DWORD padding = e->offset_ - last_offset;
 
-	ClassNode* ClassBuilder::FindNode(std::string name)
-	{
-		for (auto& n : nodes_)
-		{
-			if (n->GetBaseName() == name)
-				return n;
-		}
-		return nullptr;
-	}
+                    of << "\t\tunsigned char _0x" << std::hex << last_offset << "[0x" << std::hex << padding << "];" << std::endl;
+                }
+
+                of << "\t\t" << e->GetTypeName() << "\t" << e->name_ << e->GetArrayTerminator() << "; // 0x" << std::hex << e->offset_ << std::endl;
+
+                last_offset = e->offset_ + e->GetElementSize();
+            }
+
+            of << "\t};" << std::endl;
+
+            of << "#pragma pack(pop)" << std::endl;
+
+            of.close();
+        }
+
+        std::string sdkheader = "#pragma once;\n\n";
+        for ( auto& n : nodes_ )
+        {
+            sdkheader += "#include \"";
+            sdkheader += n->GetBaseName() + ".h\"\n";
+        }
+
+        std::ofstream of( sdk_path + "GeneratedSDK.h" , std::ios::out );
+
+        if ( !of.is_open() )
+            return;
+
+        of << sdkheader;
+
+        of.close();
+    }
+
+    ClassNode* ClassBuilder::FindNode( std::string name )
+    {
+        for ( auto& n : nodes_ )
+        {
+            if ( n->GetBaseName() == name )
+                return n;
+        }
+        return nullptr;
+    }
 }
